@@ -1,0 +1,10 @@
+[workspace]
+members = [
+    "day1",
+    "day2",
+    # Add other directories as needed
+]
+
+# Global dependencies for all workspace members can be specified here
+# [dependencies]
+# crate_name = "version"

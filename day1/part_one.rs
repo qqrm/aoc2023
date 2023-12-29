@@ -22,4 +22,3 @@ fn main() -> io::Result<()> {
     println!("Total sum: {}", sum);
     Ok(())
 }
-
