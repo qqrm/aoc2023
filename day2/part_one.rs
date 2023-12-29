@@ -52,25 +52,7 @@ fn process_line(line: &str, sum: &mut u64) -> io::Result<()> {
 
         // Process each color data in the game
         while let Some(color_data) = set.split(',').next() {
-            let space_pos = color_data.rfind(' ').unwrap();
-
-            let count = &color_data[..space_pos];
-            let count: u64 = count.trim().parse().expect("Failed to parse string to u64");
-
-            let color = &color_data[space_pos + 1..];
-
-            // Validate the color count against the maximum allowed
-            for (max_color, max_count) in MAX_ARRAY {
-                if max_color == color {
-                    if count <= max_count {
-                        println!("Valid color {count} <= {max_count} for {color}");
-                    } else {
-                        println!("Invalid color {count} > {max_count} for {color}");
-                        is_game_valid = false;
-                        break;
-                    }
-                }
-            }
+            is_game_valid = process_one_color_data(color_data, &mut is_game_valid);
 
             if set.len() == color_data.len() || !is_game_valid {
                 break;
@@ -96,4 +78,27 @@ fn process_line(line: &str, sum: &mut u64) -> io::Result<()> {
         line = &line[game.len() + 1..];
     }
     Ok(())
+}
+
+// Function to process a single color data
+fn process_one_color_data(color_data: &str, is_game_valid: &mut bool) -> bool {
+    let space_pos = color_data.rfind(' ').unwrap();
+    let count = &color_data[..space_pos];
+    let count: u64 = count.trim().parse().expect("Failed to parse string to u64");
+    let color = &color_data[space_pos + 1..];
+
+    // Validate the color count against the maximum allowed
+    for (max_color, max_count) in MAX_ARRAY {
+        if max_color == color {
+            if count <= max_count {
+                println!("Valid color {count} <= {max_count} for {color}");
+            } else {
+                println!("Invalid color {count} > {max_count} for {color}");
+                *is_game_valid = false;
+                break;
+            }
+        }
+    }
+
+    *is_game_valid
 }
