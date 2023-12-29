@@ -19,83 +19,7 @@ fn main() -> io::Result<()> {
 
     for line in io::BufReader::new(file).lines() {
         let line = line?;
-        // skip game word
-        let line = &line[5..];
-        let mut is_game_valid = true;
-
-        let game_id = line.split(':').next().unwrap();
-        dbg!(&game_id);
-        let game_id_num: u64 = game_id
-            .trim()
-            .parse()
-            .expect("Failed to parse string to u64");
-
-        // skip ": "
-        let line = &line[2..];
-        // skip game_id
-        let mut line = &line[game_id.len()..];
-
-        dbg!(&line);
-
-        while let Some(game) = line.split(';').next() {
-            // dbg!(&game);
-
-            let mut set = game;
-            dbg!(&set);
-
-            while let Some(color_data) = set.split(',').next() {
-                // dbg!(&color_data);
-
-                let space_pos = color_data.rfind(' ').unwrap();
-
-                let count = &color_data[..space_pos];
-                let count: u64 = count.trim().parse().expect("Failed to parse string to u64");
-
-                // dbg!(&count);
-
-                let color = &color_data[space_pos + 1..];
-                // dbg!(&color);
-
-                // validation
-
-                for (max_color, max_count) in MAX_ARRAY {
-                    if max_color == color {
-                        if count <= max_count {
-                            println!("Valid color {count} <= {max_count} for {color}");
-                            // is_game_valid = true;
-                        } else {
-                            println!("Invalid color {count} > {max_count} for {color}");
-
-                            is_game_valid = false;
-
-                            break;
-                        }
-                    }
-                }
-
-                if set.len() == color_data.len() || !is_game_valid {
-                    break;
-                }
-
-                set = &set[color_data.len() + 1..];
-            }
-
-            if line.len() == game.len() {
-                if is_game_valid {
-                    println!(
-                        "+ Valid game sum {sum} + {game_id_num} = {:?}",
-                        game_id_num + sum
-                    );
-
-                    sum += game_id_num;
-                } else {
-                    println!("- Invalid game");
-                }
-                break;
-            }
-
-            line = &line[game.len() + 1..];
-        }
+        process_line(&line, &mut sum)?;
 
         // dbg!(&games);
 
@@ -112,9 +36,84 @@ fn main() -> io::Result<()> {
     Ok(())
 }
 
-fn pause_for_input(message: &str) {
-    let mut input = String::new();
-    print!("{}", message);
-    // io::stdout().flush().unwrap(); // Make sure the message is displayed before pausing
-    io::stdin().read_line(&mut input).unwrap();
+fn parse_game_id(line: &str) -> (u64, &str) {
+    let game_id = line.split(':').next().unwrap();
+    let game_id_num: u64 = game_id
+        .trim()
+        .parse()
+        .expect("Failed to parse string to u64");
+    let remaining_line = &line[game_id.len() + 2..]; // skip game_id and ": "
+    (game_id_num, remaining_line)
+}
+
+fn process_line(line: &str, sum: &mut u64) -> io::Result<()> {
+    let mut is_game_valid = true;
+
+    // skip "game "
+    let line = &line[5..];
+
+    let (game_id_num, mut line) = parse_game_id(line);
+
+    dbg!(&line);
+
+    while let Some(game) = line.split(';').next() {
+        // dbg!(&game);
+
+        let mut set = game;
+        dbg!(&set);
+
+        while let Some(color_data) = set.split(',').next() {
+            // dbg!(&color_data);
+
+            let space_pos = color_data.rfind(' ').unwrap();
+
+            let count = &color_data[..space_pos];
+            let count: u64 = count.trim().parse().expect("Failed to parse string to u64");
+
+            // dbg!(&count);
+
+            let color = &color_data[space_pos + 1..];
+            // dbg!(&color);
+
+            // validation
+
+            for (max_color, max_count) in MAX_ARRAY {
+                if max_color == color {
+                    if count <= max_count {
+                        println!("Valid color {count} <= {max_count} for {color}");
+                        // is_game_valid = true;
+                    } else {
+                        println!("Invalid color {count} > {max_count} for {color}");
+
+                        is_game_valid = false;
+
+                        break;
+                    }
+                }
+            }
+
+            if set.len() == color_data.len() || !is_game_valid {
+                break;
+            }
+
+            set = &set[color_data.len() + 1..];
+        }
+
+        if line.len() == game.len() {
+            if is_game_valid {
+                println!(
+                    "+ Valid game sum {sum} + {game_id_num} = {:?}",
+                    game_id_num + *sum
+                );
+
+                *sum += game_id_num;
+            } else {
+                println!("- Invalid game");
+            }
+            break;
+        }
+
+        line = &line[game.len() + 1..];
+    }
+    Ok(())
 }
