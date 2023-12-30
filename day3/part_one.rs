@@ -11,11 +11,11 @@ fn main() -> io::Result<()> {
     let file = File::open(&path)?;
     let mut sum = 0;
 
-    let mut matrix = [[b' '; SIZE]; SIZE]; // Initialize a 140x140 matrix with spaces
+    let mut matrix = [[' '; SIZE]; SIZE]; // Initialize a 140x140 matrix with spaces
 
     for (i, line) in io::BufReader::new(file).lines().enumerate().take(SIZE) {
         for (j, ch) in line?.chars().enumerate().take(SIZE) {
-            matrix[i][j] = ch as u8;
+            matrix[i][j] = ch;
         }
     }
 
@@ -33,7 +33,11 @@ fn main() -> io::Result<()> {
                 if !buf.is_empty() {
                     let contour = extract_contour(&buf);
                     let number: i32 = num_buf.parse().unwrap_or(0);
-                    sum += contour.iter().any(|&(cx, cy)| matrix[cy as usize][cx as usize] != b'.') as i32 * number;
+                    sum += contour
+                        .iter()
+                        .any(|&(cx, cy)| matrix[cy as usize][cx as usize] != '.')
+                        as i32
+                        * number;
                     buf.clear();
                     num_buf.clear();
                 }
@@ -51,9 +55,14 @@ fn extract_contour(buf: &[(i64, i64)]) -> Vec<(i64, i64)> {
 
     for &(x, y) in buf {
         for &(nx, ny) in &get_neighbors(x, y) {
-            if nx >= 0 && ny >= 0 && nx < SIZE as i64 && ny < SIZE as i64 
-                && !buf.contains(&(nx, ny)) && visited.insert((nx, ny)) {
-                    circle.push((nx, ny));
+            if nx >= 0
+                && ny >= 0
+                && nx < SIZE as i64
+                && ny < SIZE as i64
+                && !buf.contains(&(nx, ny))
+                && visited.insert((nx, ny))
+            {
+                circle.push((nx, ny));
             }
         }
     }
@@ -63,8 +72,14 @@ fn extract_contour(buf: &[(i64, i64)]) -> Vec<(i64, i64)> {
 
 fn get_neighbors(x: i64, y: i64) -> [(i64, i64); 8] {
     [
-        (x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1),
-        (x - 1, y - 1), (x + 1, y - 1), (x - 1, y + 1), (x + 1, y + 1),
+        (x - 1, y),
+        (x + 1, y),
+        (x, y - 1),
+        (x, y + 1),
+        (x - 1, y - 1),
+        (x + 1, y - 1),
+        (x - 1, y + 1),
+        (x + 1, y + 1),
     ]
 }
 
